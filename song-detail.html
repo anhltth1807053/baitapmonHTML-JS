@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Listen to music || Songs for you</title>
+    <meta property="og:url"
+          content="https://tooeasy2get2points.herokuapp.com/list-song.html"/>
+    <meta property="og:type" content="song"/>
+    <meta property="og:title" content="Listen to music || Song I Like"/>
+    <meta property="og:description" content="Listen to your music"/>
+    <meta property="og:image"
+          content="https://tooeasy2get2points.herokuapp.com/img/share-home.png"/>
+    <link rel="icon" type="image/jpg" href="img/img1.jpg">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId            : '332971317257603',
+                autoLogAppEvents : true,
+                xfbml            : true,
+                version          : 'v2.10'
+            });
+            FB.AppEvents.logPageView();
+        };
+
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function shareOverrideOGMeta(overrideLink, overrideTitle, overrideDescription, overrideImage)
+        {
+            FB.ui({
+                    method: 'share_open_graph',
+                    action_type: 'og.likes',
+                    action_properties: JSON.stringify({
+                        object: {
+                            'og:url': overrideLink,
+                            'og:title': overrideTitle,
+                            'og:description': overrideDescription,
+                            'og:image': overrideImage
+                        }
+                    })
+                },
+                function (response) {
+                    // Action after response
+                });
+        }
+
+    </script>
+</head>
+<body>
+<h1>Song List for your life</h1>
+    <!--<img src="img/sc.png" alt="" height="200px" width="400px">-->
+
+<ul>
+    <li><a href="register.html" title="Register member">Register</a></li>
+    <li><a href="login.html" title="Member login">Login</a></li>
+    <li><a href="save-song.html" title="Create Song">Create Song</a></li>
+    <li><a href="list-song.html" title="Latest Song">Latest Song</a></li>
+</ul>
+<div class="song-player">
+    <div class="song-detail">
+        <marquee behavior="scroll" direction="left">
+            <div class="current-song-title">
+                <span id="current-play-title"></span>
+            </div>
+        </marquee>
+    </div>
+    <div class="player">
+        <audio controls id="my-mp3" autoplay>
+            <source src="" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+</div>
+<div class="list-song" id="list-song">
+</div>
+<script>
+    var MY_API = 'https://2-dot-backup-server-002.appspot.com/_api/v2/songs/detail';
+    var currentSong;
+    document.addEventListener('DOMContentLoaded', function () {
+        var url = new URL(window.location.href);
+        var id = url.searchParams.get("id");
+        if (id == null || id.length == 0) {
+            return;
+        }
+        loadSong(id);
+    });
+
+    function loadSong(id) {
+        var xmlHttpRequest = new XMLHttpRequest();
+        xmlHttpRequest.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var song = JSON.parse(this.responseText);
+                var content = '';
+                content += '<div class="song-item">';
+                content += '<div class="song-thumbnail">';
+                content += '<img src="' + song.thumbnail + '" alt="">';
+                content += '</div>';
+                content += '<div class="song-infor">';
+                content += '<div class="song-name">' + song.name + '</div>';
+                content += '<div class="song-singer">' + song.singer + '</div>';
+                content += '<div class="song-control" onclick="shareSong();">Share</div>';
+                content += '</div>';
+                content += '</div>';
+
+                document.getElementById('list-song').innerHTML = content;
+                updateDetail(song);
+            }
+        }
+        xmlHttpRequest.open('GET', MY_API + '?id=' + id, true);
+        xmlHttpRequest.send();
+    }
+
+    function updateDetail(song) {
+        document.getElementById('current-play-title').innerHTML = 'Current playing: ' + song.name + " - " + song.singer;
+        var player = document.getElementById('my-mp3');
+        player.src = song.link;
+        player.play();
+        currentSong = song;
+    }
+
+    function shareSong() {
+        if(currentSong == null){
+            return;
+        }
+        shareOverrideOGMeta('https://tooeasy2get2points.herokuapp.com/song-detail.html?id=' + currentSong.id, currentSong.name + ' || Song I Like', currentSong.description, currentSong.thumbnail);
+    }
+</script>
+</body>
+</html>
